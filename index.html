@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>웹툰 생성기</title>
+  <style>
+    :root {
+      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+      color: #111827;
+      background: #f3f4f6;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+    .lead { color: #4b5563; }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      margin-top: 1rem;
+    }
+    label {
+      display:block;
+      margin: .8rem 0 .4rem;
+      font-weight: 600;
+    }
+    textarea, select, input, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      padding: .7rem .8rem;
+      font-size: 1rem;
+    }
+    textarea { min-height: 130px; resize: vertical; }
+    button {
+      margin-top: 1rem;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .row {
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
+    }
+    .hidden { display:none; }
+    .cut {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: .75rem;
+      margin-top: .7rem;
+    }
+    .jp {
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #f9fafb;
+      padding: .75rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>상황 기반 웹툰 생성기</h1>
+    <p class="lead">상황 설명 또는 참고자료를 기반으로 여러 컷 만화 구성과 일본어 대사를 생성합니다.</p>
+
+    <section class="card">
+      <label for="scenario">상황 설명</label>
+      <textarea id="scenario" placeholder="예: 시험 전날 밤, 학생이 불안해하지만 친구의 응원으로 용기를 얻는 이야기"></textarea>
+
+      <label for="ref">참고자료 업로드 (선택)</label>
+      <input id="ref" type="file" accept="image/*,.pdf,.txt" />
+
+      <div class="row">
+        <div>
+          <label for="cuts">컷 수</label>
+          <select id="cuts">
+            <option>3</option>
+            <option selected>4</option>
+            <option>6</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="tone">톤</label>
+          <select id="tone">
+            <option>코믹</option>
+            <option>감동</option>
+            <option>일상</option>
+            <option>긴장감</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="generate">웹툰 콘티 생성</button>
+    </section>
+
+    <section id="output" class="card hidden"></section>
+  </main>
+
+  <script>
+    const byId = (id) => document.getElementById(id);
+
+    const promptTemplate = ({ scenario, cuts, tone, hasRef }) => `
+당신은 웹툰 작가입니다.
+다음 조건으로 ${cuts}컷 웹툰 콘티를 만드세요.
+- 상황: ${scenario || "없음(참고자료 기반으로 추론)"}
+- 톤: ${tone}
+- 참고자료 업로드 여부: ${hasRef ? "있음" : "없음"}
+- 각 컷마다 장면 설명, 감정, 카메라 구도, 일본어 대사(원문)와 한국어 해석을 제공
+- 출력은 JSON 배열 형식
+`;
+
+    const jpLines = {
+      코믹: ["えっ、今それ言う!?", "まあ、なんとかなるって！", "ドキドキするけど、行こう！"],
+      감동: ["君ならきっとできる。", "一人じゃないよ。", "ありがとう、勇気が出た。"],
+      일상: ["今日もいつも通りだね。", "ちょっと休憩しよう。", "じゃあ、またあとで。"],
+      긴장감: ["時間がない、急ごう。", "このままじゃ間に合わない。", "最後まで諦めない！"]
+    };
+
+    function generateStoryboard({ scenario, cuts, tone, hasRef, refName }) {
+      const lines = jpLines[tone] || jpLines["일상"];
+      const base = scenario || (hasRef ? `참고자료(${refName}) 기반 스토리` : "상황 없음");
+      return Array.from({ length: Number(cuts) }, (_, i) => ({
+        cut: i + 1,
+        scene: `${i + 1}컷: ${base.slice(0, 50)}... 전개`,
+        emotion: ["불안", "결심", "행동", "해소", "성장", "여운"][i] || "여운",
+        camera: ["클로즈업", "미디엄샷", "와이드샷", "로우앵글", "오버숄더", "탑뷰"][i] || "미디엄샷",
+        japanese: lines[i % lines.length],
+        korean: "(일본어 대사에 맞는 한국어 해석을 여기에 표시)"
+      }));
+    }
+
+    byId("generate").addEventListener("click", () => {
+      const scenario = byId("scenario").value.trim();
+      const fileInput = byId("ref");
+      const hasRef = fileInput.files.length > 0;
+      const refName = hasRef ? fileInput.files[0].name : "";
+
+      // 핵심 조건: 상황 설명 또는 참고자료 중 하나만 있어도 생성 가능
+      if (!scenario && !hasRef) {
+        alert("상황 설명을 입력하거나 참고자료를 업로드해 주세요.");
+        return;
+      }
+
+      const cuts = byId("cuts").value;
+      const tone = byId("tone").value;
+
+      const systemPrompt = promptTemplate({ scenario, cuts, tone, hasRef });
+      const storyboard = generateStoryboard({ scenario, cuts, tone, hasRef, refName });
+
+      const out = byId("output");
+      out.classList.remove("hidden");
+      out.innerHTML = `
+        <h2>생성 결과</h2>
+        <p><strong>LLM 프롬프트 샘플:</strong></p>
+        <pre>${systemPrompt.replace(/</g, "&lt;")}</pre>
+        ${storyboard.map(item => `
+          <article class="cut">
+            <h3>${item.cut}컷</h3>
+            <p><strong>장면:</strong> ${item.scene}</p>
+            <p><strong>감정:</strong> ${item.emotion}</p>
+            <p><strong>카메라:</strong> ${item.camera}</p>
+            <p class="jp">${item.japanese}</p>
+            <p>${item.korean}</p>
+          </article>
+        `).join("")}
+      `;
+    });
+  </script>
+</body>
+</html>
