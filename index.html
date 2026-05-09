@@ -3,234 +3,296 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>상황 기반 웹툰 생성기</title>
+  <title>상황 기반 웹툰 콘티 생성기</title>
   <style>
     :root { font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif; color:#111827; background:#f3f4f6; }
-    * { box-sizing:border-box; }
-    body { margin:0; }
-    .container { max-width:900px; margin:0 auto; padding:2rem 1rem 4rem; }
-    .lead { color:#4b5563; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .container { max-width: 980px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    .lead { color: #4b5563; }
     .card { background:#fff; border-radius:16px; padding:1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1rem; }
     label { display:block; margin:.8rem 0 .4rem; font-weight:600; }
     textarea, select, input, button { width:100%; border-radius:10px; border:1px solid #d1d5db; padding:.7rem .8rem; font-size:1rem; }
     textarea { min-height:130px; resize:vertical; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
     .actions { display:flex; gap:.6rem; margin-top:1rem; }
-    .actions button { border:none; color:#fff; font-weight:700; cursor:pointer; }
-    #generate { background:#2563eb; }
-    #copyAll { background:#059669; display:none; }
+    #generate { background:#2563eb; border:none; color:#fff; font-weight:700; cursor:pointer; }
+    #copyAll { background:#059669; border:none; color:#fff; font-weight:700; cursor:pointer; display:none; }
     .hidden { display:none; }
-    .result-grid { display:grid; gap:.75rem; margin-top:.7rem; }
+    .result-grid { display:grid; gap:.9rem; margin-top:.7rem; }
     .cut-card { border:1px solid #e5e7eb; border-radius:12px; padding:.9rem; background:#fcfcfd; }
-    .cut-head { display:flex; justify-content:space-between; align-items:center; gap:.6rem; }
-    .copy-btn { width:auto; background:#374151; color:#fff; border:none; padding:.45rem .7rem; border-radius:8px; cursor:pointer; font-size:.9rem; }
+    .cut-head { display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-bottom:.3rem; }
+    .copy-btn { width:auto; background:#374151; color:#fff; border:none; padding:.35rem .65rem; border-radius:8px; cursor:pointer; font-size:.85rem; }
+    .inline { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
     .jp { color:#1d4ed8; font-weight:700; }
+    .prompt-box { background:#f9fafb; border:1px dashed #d1d5db; border-radius:10px; padding:.6rem; white-space:pre-wrap; line-height:1.45; }
     .muted { color:#6b7280; font-size:.9rem; }
   </style>
 </head>
 <body>
-  <main class="container">
-    <h1>상황 기반 웹툰 생성기</h1>
-    <p class="lead">상황 설명 또는 참고자료를 바탕으로 컷별 웹툰 스토리와 자연스러운 일본어 대사를 생성합니다.</p>
+<main class="container">
+  <h1>상황 기반 웹툰 콘티 생성기</h1>
+  <p class="lead">상황 설명을 바탕으로 스토리 흐름, 일본어 대사, 한국어 뜻, 고품질 이미지 프롬프트를 컷별로 생성합니다.</p>
 
-    <section class="card">
-      <label for="scenario">상황 설명</label>
-      <textarea id="scenario" placeholder="예: 학생 3명이 카페에서 만나 인사하고, 친구를 소개하고, 취미와 학년을 묻는 장면"></textarea>
+  <section class="card">
+    <label for="scenario">상황 설명</label>
+    <textarea id="scenario" placeholder="예: 학생 3명이 학교 복도에서 만나 인사하고, 한 명이 친구 둘을 소개한 뒤 취미와 학년을 물어보는 장면"></textarea>
 
-      <label for="ref">참고자료 업로드 (선택)</label>
-      <input id="ref" type="file" accept="image/*,.pdf,.txt" />
+    <label for="ref">참고자료 업로드 (선택)</label>
+    <input id="ref" type="file" accept="image/*,.pdf,.txt" />
 
-      <div class="row">
-        <div>
-          <label for="cuts">컷 수</label>
-          <select id="cuts">
-            <option>3</option>
-            <option selected>4</option>
-            <option>6</option>
-          </select>
-        </div>
-        <div>
-          <label for="tone">톤</label>
-          <select id="tone">
-            <option>일상</option>
-            <option>코믹</option>
-            <option>감동</option>
-            <option>긴장감</option>
-          </select>
-        </div>
+    <div class="row">
+      <div>
+        <label for="cuts">컷 수</label>
+        <select id="cuts">
+          <option>3</option>
+          <option selected>4</option>
+          <option>6</option>
+        </select>
       </div>
-
-      <div class="actions">
-        <button id="generate">웹툰 생성</button>
-        <button id="copyAll">전체 복사</button>
+      <div>
+        <label for="tone">톤</label>
+        <select id="tone">
+          <option>일상</option>
+          <option>코믹</option>
+          <option>감동</option>
+          <option>긴장감</option>
+        </select>
       </div>
-      <p class="muted">※ 상황 설명 또는 참고자료 중 하나만 있어도 생성됩니다.</p>
-    </section>
+    </div>
 
-    <section id="output" class="card hidden">
-      <h2>생성 결과</h2>
-      <div id="resultGrid" class="result-grid"></div>
-    </section>
-  </main>
+    <div class="actions">
+      <button id="generate">웹툰 생성</button>
+      <button id="copyAll">전체 결과 복사</button>
+    </div>
+    <p class="muted">※ 상황 설명 또는 참고자료 중 하나만 있어도 생성됩니다.</p>
+  </section>
 
-  <script>
-    const byId = (id) => document.getElementById(id);
+  <section id="output" class="card hidden">
+    <h2>생성 결과</h2>
+    <div id="resultGrid" class="result-grid"></div>
+  </section>
+</main>
 
-    const roleTemplates = {
-      3: ["도입", "핵심 대화", "마무리"],
-      4: ["도입", "인물 소개", "질문/응답", "마무리"],
-      6: ["도입", "인물 소개", "질문", "응답", "반응", "마무리"]
+<script>
+const byId = (id) => document.getElementById(id);
+
+const namePool = ["はる", "ゆい", "そうた", "みな", "れん", "あおい", "けん", "りな"];
+const outfits = ["네이비 교복 재킷과 체크 스커트", "화이트 셔츠와 슬랙스", "후드집업과 청바지", "카디건과 플리츠 스커트", "얇은 니트와 크로스백"];
+const traits = ["밝고 활발함", "차분하고 배려심 깊음", "수줍지만 솔직함", "호기심 많고 리액션이 큼", "진지하고 책임감 있음"];
+const features = ["짧은 흑발", "어깨 길이 갈색 머리", "둥근 안경", "작은 보조개", "또렷한 눈매"];
+const cameras = ["미디엄 와이드샷", "오버숄더 샷", "미디엄 샷", "클로즈업", "로우앵글 미디엄샷", "탑뷰 + 미디엄 인서트"];
+const lights = {
+  일상: "부드러운 자연광",
+  코믹: "밝고 선명한 하이키 조명",
+  감동: "따뜻한 골든아워 조명",
+  긴장감: "명암 대비가 있는 집중 조명"
+};
+const palettes = {
+  일상: "파스텔 블루와 베이지 중심 색감",
+  코믹: "채도 높은 민트와 옐로 포인트",
+  감동: "따뜻한 오렌지와 핑크 톤",
+  긴장감: "차분한 네이비와 그레이 톤"
+};
+
+const roleMap = {
+  3: ["장소 제시와 만남", "질문과 응답", "마무리와 약속"],
+  4: ["장소 제시와 만남", "인물 소개", "질문과 응답", "마무리와 약속"],
+  6: ["장소 제시와 만남", "인물 소개", "질문", "답변", "반응과 공감", "마무리와 다음 행동 약속"]
+};
+
+function parseScenario(text, hasRef) {
+  const t = (text || "").trim();
+  const people = Number((t.match(/(\d+)명/) || [])[1] || (/(학생|친구|선배|후배)/.test(t) ? 3 : 2));
+  const grade = (t.match(/(\d학년|[일이삼]학년)/) || [])[1] || "고등학교 2학년";
+  const hobby = (t.match(/취미[는은]?\s*([^,\.\n]+)/) || [])[1] || "음악 듣기";
+  const purpose = (t.match(/(소개|인사|취미|학년|질문|상담|발표 준비|친해지기)/) || [])[1] || "친해지기";
+
+  const placeKeywords = [
+    "학교 복도", "고등학교 교실 앞", "방과 후 운동장 입구", "역 앞 약속 장소", "햇살 드는 카페 창가", "축제 부스 앞", "도서관 앞 벤치"
+  ];
+  const explicit = placeKeywords.find((p) => t.includes(p));
+  const place = explicit || (t.includes("카페") ? "햇살 드는 카페 창가" : t.includes("학교") ? "고등학교 교실 앞" : t.includes("도서관") ? "도서관 앞 벤치" : "역 앞 약속 장소");
+
+  const relation = t.includes("친구") ? "같은 반 친구" : t.includes("선배") ? "선후배" : "같은 동아리 친구";
+
+  return {
+    raw: t || "학생들이 만나 서로 인사하고 자기소개를 하며 취미와 학년을 묻는다.",
+    people,
+    place,
+    grade,
+    hobby,
+    purpose,
+    relation,
+    hasRef
+  };
+}
+
+function buildCharacters(context) {
+  return Array.from({ length: context.people }, (_, i) => ({
+    name: namePool[i % namePool.length],
+    age: context.grade,
+    gender: i % 2 === 0 ? "여학생" : "남학생",
+    trait: traits[i % traits.length],
+    outfit: outfits[i % outfits.length],
+    feature: features[i % features.length],
+    relation: context.relation
+  }));
+}
+
+function jaKoByRole(role, context, chars) {
+  const [a, b, c] = chars;
+  const lines = {
+    "장소 제시와 만남": {
+      ja: `${a.name}「こんにちは、待った？」`,
+      ko: `${a.name}: 안녕, 기다렸어?`
+    },
+    "인물 소개": {
+      ja: `${a.name}「こちらは${b?.name || a.name}。同じクラスの友だちだよ。」`,
+      ko: `${a.name}: 이쪽은 ${b?.name || a.name}야. 같은 반 친구야.`
+    },
+    "질문": {
+      ja: `${c?.name || b?.name || a.name}「${a.name}さんの趣味は何ですか？」`,
+      ko: `${c?.name || b?.name || a.name}: ${a.name}의 취미는 뭐예요?`
+    },
+    "답변": {
+      ja: `${a.name}「私の趣味は${context.hobby}です。週末によくします。」`,
+      ko: `${a.name}: 제 취미는 ${context.hobby}예요. 주말에 자주 해요.`
+    },
+    "반응과 공감": {
+      ja: `${b?.name || a.name}「いいね！私もやってみたい。」`,
+      ko: `${b?.name || a.name}: 좋다! 나도 해보고 싶어.`
+    },
+    "질문과 응답": {
+      ja: `${b?.name || a.name}「何年生ですか？」 ${a.name}「${context.grade}です。」`,
+      ko: `${b?.name || a.name}: 몇 학년이에요? ${a.name}: ${context.grade}이에요.`
+    },
+    "마무리와 약속": {
+      ja: `${a.name}「また放課後に話そう。いっしょに帰ろう！」`,
+      ko: `${a.name}: 다음에 방과 후에 또 얘기하자. 같이 가자!`
+    },
+    "마무리와 다음 행동 약속": {
+      ja: `${c?.name || a.name}「次は図書館で会って、いっしょに勉強しよう。」`,
+      ko: `${c?.name || a.name}: 다음엔 도서관에서 만나서 같이 공부하자.`
+    }
+  };
+  return lines[role] || { ja: `${a.name}「よろしくね。」`, ko: `${a.name}: 잘 부탁해.` };
+}
+
+function sceneDescription(role, context, chars, i) {
+  const charDesc = chars.map((p) => `${p.name}(${p.gender}, ${p.age}, ${p.trait}, ${p.outfit}, ${p.feature})`).join(" / ");
+  const baseProps = ["학교 안내판", "자전거 거치대", "교실 문 표지", "벤치", "노트와 필통", "벚꽃 잎"].slice(i, i + 3).join(", ");
+  const acts = {
+    "장소 제시와 만남": "서로 손을 흔들며 인사하고 가볍게 미소 짓는다.",
+    "인물 소개": "한 명이 두 사람 사이를 이어주며 손바닥으로 소개 제스처를 취한다.",
+    "질문": "고개를 살짝 기울이며 상대의 취미를 묻는다.",
+    "답변": "가슴 앞에서 손을 모은 채 또렷하게 답한다.",
+    "반응과 공감": "눈을 반짝이며 고개를 끄덕이고 공감 리액션을 보인다.",
+    "질문과 응답": "질문한 인물과 답한 인물이 번갈아 말하며 자연스럽게 대화한다.",
+    "마무리와 약속": "세 사람이 같은 방향으로 걸어가며 다음 만남을 약속한다.",
+    "마무리와 다음 행동 약속": "노트를 펼쳐 다음 일정 메모를 하며 웃는다."
+  };
+  return `${context.place}. 등장인물: ${charDesc}. ${acts[role] || "대화가 이어진다."} 배경 소품: ${baseProps}.`;
+}
+
+function imagePrompt(cutNo, role, scene, ja, context, chars, tone, i) {
+  const peopleVisual = chars.map((p) => `${p.name}는 ${p.outfit}, ${p.feature}, ${p.trait}`).join("; ");
+  return `컷 ${cutNo}, ${context.place}, ${role}. ${scene} 인물 외형/의상: ${peopleVisual}. 표정과 동작: ${role.includes("질문") ? "질문자는 궁금한 표정, 상대는 경청하는 표정" : role.includes("답변") ? "답변자는 자신감 있는 미소, 주변 인물은 집중" : "자연스럽고 생동감 있는 학생 표정"}. 배경 소품: 사물함, 안내판, 가방, 교재, 먼 배경 학생 실루엣. 카메라 구도: ${cameras[i % cameras.length]}. 조명: ${lights[tone]}. 색감: ${palettes[tone]}. 웹툰 스타일: 고급 일본 학원 청춘 만화풍, 선명한 라인아트, 깔끔한 말풍선, 시네마틱 프레이밍. 말풍선 일본어 대사: "${ja}".`;
+}
+
+function ensureUnique(cuts) {
+  const seenJa = new Set();
+  const seenScene = new Set();
+  const seenPrompt = new Set();
+  return cuts.map((c, i) => {
+    let ja = c.ja, scene = c.scene, prompt = c.prompt;
+    if (seenJa.has(ja)) ja += ` (${i + 1})`;
+    if (seenScene.has(scene)) scene += ` 카메라와 동선이 컷 ${i + 1}에 맞게 변주된다.`;
+    if (seenPrompt.has(prompt)) prompt += ` 추가 지시: 이전 컷과 다른 표정과 동작.`;
+    seenJa.add(ja); seenScene.add(scene); seenPrompt.add(prompt);
+    return { ...c, ja, scene, prompt };
+  });
+}
+
+function generateStoryboard({ scenario, cuts, tone, hasRef }) {
+  const context = parseScenario(scenario, hasRef);
+  const chars = buildCharacters(context);
+  const roles = roleMap[Number(cuts)] || roleMap[4];
+
+  const draft = roles.map((role, i) => {
+    const pair = jaKoByRole(role, context, chars);
+    const scene = sceneDescription(role, context, chars, i);
+    return {
+      cut: i + 1,
+      role,
+      scene,
+      ja: pair.ja,
+      ko: pair.ko,
+      prompt: imagePrompt(i + 1, role, scene, pair.ja, context, chars, tone, i)
     };
+  });
 
-    const toneWords = {
-      일상: ["편안한", "부드러운", "친근한"],
-      코믹: ["유쾌한", "가벼운", "장난스러운"],
-      감동: ["따뜻한", "진심 어린", "다정한"],
-      긴장감: ["조심스러운", "집중된", "긴박한"]
-    };
+  return ensureUnique(draft);
+}
 
-    function extractContext(text, hasRef) {
-      const clean = (text || "").trim();
-      const peopleMatch = clean.match(/(\d+)명/);
-      const people = peopleMatch ? Number(peopleMatch[1]) : (/(학생|친구|선생|팀원)/.test(clean) ? 2 : 1);
+function render(results) {
+  const grid = byId("resultGrid");
+  grid.innerHTML = "";
 
-      const placeHints = ["학교", "교실", "복도", "카페", "도서관", "공원", "집", "회사", "강의실"];
-      const place = placeHints.find((p) => clean.includes(p)) || (hasRef ? "참고자료 속 배경" : "약속 장소");
+  results.forEach((r) => {
+    const card = document.createElement("article");
+    card.className = "cut-card";
+    card.innerHTML = `
+      <div class="cut-head"><h3>컷 ${r.cut}</h3></div>
+      <p><strong>- 장면 역할:</strong> ${r.role}</p>
+      <p><strong>- 장면 설명:</strong> ${r.scene}</p>
+      <p class="inline"><strong>- 일본어 대사:</strong> <span class="jp">${r.ja}</span> <button class="copy-btn" data-type="ja" data-text="${encodeURIComponent(r.ja)}">복사</button></p>
+      <p><strong>- 한국어 뜻:</strong> ${r.ko}</p>
+      <p class="inline"><strong>- 이미지 프롬프트:</strong> <button class="copy-btn" data-type="prompt" data-text="${encodeURIComponent(r.prompt)}">복사</button></p>
+      <div class="prompt-box">${r.prompt}</div>
+    `;
+    grid.appendChild(card);
+  });
 
-      const purpose = /소개|인사|취미|학년|질문|면접|발표|응원|상담/.exec(clean)?.[0] || "대화";
-
-      return {
-        raw: clean || "참고자료를 바탕으로 인물들이 만나 자연스럽게 대화한다.",
-        people,
-        place,
-        purpose,
-        hasRef
-      };
-    }
-
-    function buildScene(role, i, context, tone) {
-      const mood = toneWords[tone][i % toneWords[tone].length];
-      const personText = context.people > 1 ? `인물 ${context.people}명` : "한 인물";
-
-      const map = {
-        "도입": `${context.place}에서 ${personText}이(가) 만나 ${mood} 분위기로 이야기를 시작한다.`,
-        "인물 소개": `한 인물이 다른 인물을 소개하며 관계와 목적(${context.purpose})을 분명히 한다.`,
-        "핵심 대화": `${context.raw}의 핵심 주제를 짚으며 서로의 생각을 나눈다.`,
-        "질문": `${context.purpose}와 관련된 구체적인 질문이 나오며 대화의 방향이 정해진다.`,
-        "응답": `질문을 받은 인물이 자신의 상황을 솔직하고 구체적으로 답한다.`,
-        "질문/응답": `한 인물이 질문하고 다른 인물이 바로 응답하며 서로를 이해한다.`,
-        "반응": `답을 들은 인물들이 공감하거나 놀라워하며 분위기가 살아난다.`,
-        "마무리": `대화를 정리하고 다음 행동을 약속하며 장면을 기분 좋게 마친다.`
-      };
-
-      return map[role] || `${context.raw}를 바탕으로 장면이 전개된다.`;
-    }
-
-    function roleLine(role, idx) {
-      const variants = {
-        "도입": ["こんにちは、待たせてごめんね。", "やっと会えたね、今日はよろしく。", "来てくれてありがとう、始めようか。"],
-        "인물 소개": ["こちらは同じクラスのミナです。", "この人は私の友だちで、とても頼れるんだ。", "紹介するね、彼はプロジェクトのメンバーだよ。"],
-        "핵심 대화": ["まずは今日の目的を確認しよう。", "大事なポイントから話していこうか。", "じゃあ本題に入ってもいい？"],
-        "질문": ["ところで、あなたの趣味は何ですか？", "今、いちばん頑張っていることは何？", "何年生ですか、よかったら教えてください。"],
-        "응답": ["私は写真を撮るのが好きです。", "今は英語の勉強に力を入れています。", "二年生です、部活と両立しています。"],
-        "질문/응답": ["趣味は何？― 私はギターを弾くのが好き。", "何年生？― 三年生で受験の準備中だよ。", "どんなことに興味がある？― デザインに興味があります。"],
-        "반응": ["それ、すごくいいですね！", "わあ、もっと話を聞きたくなった。", "なるほど、すごく参考になるよ。"],
-        "마무리": ["今日は話せて本当によかった。", "次は一緒に練習してみよう。", "また会って続きの話をしようね。"]
-      };
-      return variants[role]?.[idx % variants[role].length] || "いい話ができたね。";
-    }
-
-    function toKoreanHint(jp) {
-      return `한국어 뜻: ${jp.replace(/。/g, "")}`;
-    }
-
-    function ensureUniqueLines(cuts) {
-      const seen = new Set();
-      return cuts.map((cut, idx) => {
-        let line = cut.japanese;
-        let guard = 0;
-        while (seen.has(line) && guard < 5) {
-          line = `${line.replace(/[。！!]$/, "")} (${idx + 1})。`;
-          guard += 1;
-        }
-        seen.add(line);
-        return { ...cut, japanese: line, korean: toKoreanHint(line) };
-      });
-    }
-
-    function generateStory({ scenario, cuts, tone, hasRef }) {
-      const n = Number(cuts);
-      const context = extractContext(scenario, hasRef);
-      const roles = roleTemplates[n] || roleTemplates[4];
-
-      const draft = roles.map((role, i) => ({
-        cut: i + 1,
-        role,
-        scene: buildScene(role, i, context, tone),
-        japanese: roleLine(role, i)
-      }));
-
-      return ensureUniqueLines(draft);
-    }
-
-    function renderResults(cuts) {
-      const grid = byId("resultGrid");
-      grid.innerHTML = "";
-
-      cuts.forEach((item) => {
-        const card = document.createElement("article");
-        card.className = "cut-card";
-        card.innerHTML = `
-          <div class="cut-head">
-            <h3>컷 ${item.cut} (${item.role})</h3>
-            <button class="copy-btn" data-copy="${encodeURIComponent(item.japanese)}">복사</button>
-          </div>
-          <p><strong>- 장면 설명:</strong> ${item.scene}</p>
-          <p><strong>- 일본어 대사:</strong> <span class="jp">${item.japanese}</span></p>
-          <p><strong>- 한국어 뜻:</strong> ${item.korean.replace("한국어 뜻: ", "")}</p>
-        `;
-        grid.appendChild(card);
-      });
-
-      grid.querySelectorAll(".copy-btn").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const text = decodeURIComponent(btn.dataset.copy);
-          await navigator.clipboard.writeText(text);
-          btn.textContent = "복사됨";
-          setTimeout(() => (btn.textContent = "복사"), 900);
-        });
-      });
-    }
-
-    function allText(cuts) {
-      return cuts.map((item) => `컷 ${item.cut}\n- 장면 설명: ${item.scene}\n- 일본어 대사: ${item.japanese}\n- 한국어 뜻: ${item.korean.replace("한국어 뜻: ", "")}`).join("\n\n");
-    }
-
-    byId("generate").addEventListener("click", () => {
-      const scenario = byId("scenario").value.trim();
-      const hasRef = byId("ref").files.length > 0;
-
-      if (!scenario && !hasRef) {
-        alert("상황 설명을 입력하거나 참고자료를 업로드해 주세요.");
-        return;
-      }
-
-      const cuts = byId("cuts").value;
-      const tone = byId("tone").value;
-      const story = generateStory({ scenario, cuts, tone, hasRef });
-
-      renderResults(story);
-      const output = byId("output");
-      output.classList.remove("hidden");
-
-      const copyAll = byId("copyAll");
-      copyAll.style.display = "block";
-      copyAll.onclick = async () => {
-        await navigator.clipboard.writeText(allText(story));
-        copyAll.textContent = "전체 복사됨";
-        setTimeout(() => (copyAll.textContent = "전체 복사"), 900);
-      };
+  grid.querySelectorAll(".copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const text = decodeURIComponent(btn.dataset.text);
+      await navigator.clipboard.writeText(text);
+      const old = btn.textContent;
+      btn.textContent = "복사됨";
+      setTimeout(() => btn.textContent = old, 900);
     });
-  </script>
+  });
+}
+
+function serialize(results) {
+  return results.map((r) => `컷 ${r.cut}\n- 장면 역할: ${r.role}\n- 장면 설명: ${r.scene}\n- 일본어 대사: ${r.ja}\n- 한국어 뜻: ${r.ko}\n- 이미지 프롬프트: ${r.prompt}`).join("\n\n");
+}
+
+byId("generate").addEventListener("click", () => {
+  const scenario = byId("scenario").value.trim();
+  const hasRef = byId("ref").files.length > 0;
+
+  if (!scenario && !hasRef) {
+    alert("상황 설명을 입력하거나 참고자료를 업로드해 주세요.");
+    return;
+  }
+
+  const cuts = byId("cuts").value;
+  const tone = byId("tone").value;
+  const results = generateStoryboard({ scenario, cuts, tone, hasRef });
+
+  render(results);
+  byId("output").classList.remove("hidden");
+
+  const copyAll = byId("copyAll");
+  copyAll.style.display = "block";
+  copyAll.onclick = async () => {
+    await navigator.clipboard.writeText(serialize(results));
+    copyAll.textContent = "전체 복사됨";
+    setTimeout(() => copyAll.textContent = "전체 결과 복사", 900);
+  };
+});
+</script>
 </body>
 </html>
