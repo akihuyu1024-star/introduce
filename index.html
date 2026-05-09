@@ -14,7 +14,7 @@
     * { box-sizing: border-box; }
     body { margin: 0; }
     .container {
-      max-width: 880px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 2rem 1rem 4rem;
     }
@@ -27,7 +27,7 @@
       margin-top: 1rem;
     }
     label {
-      display:block;
+      display: block;
       margin: .8rem 0 .4rem;
       font-weight: 600;
     }
@@ -40,24 +40,25 @@
     }
     textarea { min-height: 130px; resize: vertical; }
     button {
-      margin-top: 1rem;
       border: none;
       background: #2563eb;
       color: #fff;
       font-weight: 700;
       cursor: pointer;
     }
+    #generate { margin-top: 1rem; }
     .row {
-      display:grid;
+      display: grid;
       grid-template-columns: 1fr 1fr;
       gap: .8rem;
     }
-    .hidden { display:none; }
+    .hidden { display: none; }
     .cut {
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       padding: .75rem;
       margin-top: .7rem;
+      background: #fff;
     }
     .jp {
       color: #1d4ed8;
@@ -69,6 +70,41 @@
       padding: .75rem;
       border-radius: 8px;
       border: 1px solid #e5e7eb;
+      margin: .5rem 0 0;
+    }
+
+    .section-title {
+      margin-top: 1.4rem;
+      margin-bottom: .4rem;
+    }
+    .prompt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .6rem;
+      margin-top: .7rem;
+    }
+    .prompt-title {
+      font-weight: 700;
+      margin: 0;
+    }
+    .copy-btn {
+      width: auto;
+      padding: .45rem .7rem;
+      border-radius: 8px;
+      background: #111827;
+      font-size: .9rem;
+    }
+    .copy-all-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: .2rem;
+      margin-bottom: .5rem;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: .92rem;
+      margin-top: .3rem;
     }
   </style>
 </head>
@@ -93,7 +129,6 @@
             <option>6</option>
           </select>
         </div>
-
         <div>
           <label for="tone">톤</label>
           <select id="tone">
@@ -117,7 +152,7 @@
     const promptTemplate = ({ scenario, cuts, tone, hasRef }) => `
 당신은 웹툰 작가입니다.
 다음 조건으로 ${cuts}컷 웹툰 콘티를 만드세요.
-- 상황: ${scenario || "없음(참고자료 기반으로 추론)"}
+- 상황: ${scenario || "없음(참고자료 기반 추론)"}
 - 톤: ${tone}
 - 참고자료 업로드 여부: ${hasRef ? "있음" : "없음"}
 - 각 컷마다 장면 설명, 감정, 카메라 구도, 일본어 대사(원문)와 한국어 해석을 제공
@@ -131,17 +166,62 @@
       긴장감: ["時間がない、急ごう。", "このままじゃ間に合わない。", "最後まで諦めない！"]
     };
 
+    const backgrounds = {
+      코믹: ["학교 복도", "교실", "카페 거리", "운동장", "지하철역", "옥상"],
+      감동: ["노을 지는 교실", "도서관 창가", "비 오는 골목", "공원 벤치", "다리 위", "집 앞 길"],
+      일상: ["교실", "학교 앞 편의점", "주택가 골목", "버스 정류장", "도서관", "동네 공원"],
+      긴장감: ["어두운 복도", "시험장 앞", "비상계단", "텅 빈 운동장", "지하철 플랫폼", "옥상 난간 근처"]
+    };
+
+    const lighting = {
+      코믹: "밝고 선명한 하이키 조명, 채도 높은 색감",
+      감동: "부드러운 역광과 따뜻한 톤, 파스텔 색감",
+      일상: "자연광 중심의 뉴트럴 톤, 담백한 색감",
+      긴장감: "강한 명암 대비의 로우키 조명, 차가운 색감"
+    };
+
     function generateStoryboard({ scenario, cuts, tone, hasRef, refName }) {
       const lines = jpLines[tone] || jpLines["일상"];
       const base = scenario || (hasRef ? `참고자료(${refName}) 기반 스토리` : "상황 없음");
+      const emotionMap = ["불안", "결심", "행동", "해소", "성장", "여운"];
+      const cameraMap = ["클로즈업", "미디엄샷", "와이드샷", "로우앵글", "오버숄더", "탑뷰"];
+      const bgList = backgrounds[tone] || backgrounds["일상"];
+
       return Array.from({ length: Number(cuts) }, (_, i) => ({
         cut: i + 1,
-        scene: `${i + 1}컷: ${base.slice(0, 50)}... 전개`,
-        emotion: ["불안", "결심", "행동", "해소", "성장", "여운"][i] || "여운",
-        camera: ["클로즈업", "미디엄샷", "와이드샷", "로우앵글", "오버숄더", "탑뷰"][i] || "미디엄샷",
+        scene: `${i + 1}컷: ${base.slice(0, 60)}... 전개`,
+        emotion: emotionMap[i] || "여운",
+        background: bgList[i % bgList.length],
+        camera: cameraMap[i] || "미디엄샷",
+        style: `${tone} 분위기의 한국형 세로 스크롤 웹툰, 깔끔한 라인아트`,
+        lighting: lighting[tone] || lighting["일상"],
         japanese: lines[i % lines.length],
         korean: "(일본어 대사에 맞는 한국어 해석을 여기에 표시)"
       }));
+    }
+
+    function buildImagePrompt(item) {
+      return [
+        `컷 ${item.cut} 이미지 생성 프롬프트`,
+        `- 장면 설명: ${item.scene}`,
+        `- 인물 감정: ${item.emotion}`,
+        `- 배경: ${item.background}`,
+        `- 카메라 구도: ${item.camera}`,
+        `- 조명/색감: ${item.lighting}`,
+        `- 웹툰 스타일: ${item.style}`,
+        `- 말풍선 대사: "${item.japanese}"`
+      ].join("\n");
+    }
+
+    async function copyText(text, btn) {
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.textContent;
+        btn.textContent = "복사됨";
+        setTimeout(() => (btn.textContent = original), 900);
+      } catch {
+        alert("복사에 실패했습니다. 브라우저 권한을 확인해 주세요.");
+      }
     }
 
     byId("generate").addEventListener("click", () => {
@@ -149,18 +229,18 @@
       const fileInput = byId("ref");
       const hasRef = fileInput.files.length > 0;
       const refName = hasRef ? fileInput.files[0].name : "";
+      const cuts = byId("cuts").value;
+      const tone = byId("tone").value;
 
-      // 핵심 조건: 상황 설명 또는 참고자료 중 하나만 있어도 생성 가능
+      // 상황 설명 또는 참고자료 중 하나만 있어도 생성 가능
       if (!scenario && !hasRef) {
         alert("상황 설명을 입력하거나 참고자료를 업로드해 주세요.");
         return;
       }
 
-      const cuts = byId("cuts").value;
-      const tone = byId("tone").value;
-
       const systemPrompt = promptTemplate({ scenario, cuts, tone, hasRef });
       const storyboard = generateStoryboard({ scenario, cuts, tone, hasRef, refName });
+      const imagePrompts = storyboard.map(buildImagePrompt);
 
       const out = byId("output");
       out.classList.remove("hidden");
@@ -168,6 +248,7 @@
         <h2>생성 결과</h2>
         <p><strong>LLM 프롬프트 샘플:</strong></p>
         <pre>${systemPrompt.replace(/</g, "&lt;")}</pre>
+
         ${storyboard.map(item => `
           <article class="cut">
             <h3>${item.cut}컷</h3>
@@ -178,7 +259,34 @@
             <p>${item.korean}</p>
           </article>
         `).join("")}
+
+        <h3 class="section-title">컷별 이미지 프롬프트</h3>
+        <p class="muted">이미지 생성 모델(예: text-to-image)에 그대로 넣어 사용할 수 있는 프롬프트입니다.</p>
+        <div class="copy-all-wrap">
+          <button class="copy-btn" id="copyAllPrompts">전체 프롬프트 복사</button>
+        </div>
+
+        ${imagePrompts.map((prompt, idx) => `
+          <article class="cut">
+            <div class="prompt-header">
+              <p class="prompt-title">컷 ${idx + 1}</p>
+              <button class="copy-btn copy-one" data-idx="${idx}">복사</button>
+            </div>
+            <pre>${prompt.replace(/</g, "&lt;")}</pre>
+          </article>
+        `).join("")}
       `;
+
+      const allText = imagePrompts.join("\n\n--------------------\n\n");
+      const copyAllBtn = byId("copyAllPrompts");
+      copyAllBtn.addEventListener("click", () => copyText(allText, copyAllBtn));
+
+      out.querySelectorAll(".copy-one").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.idx);
+          copyText(imagePrompts[idx], btn);
+        });
+      });
     });
   </script>
 </body>
