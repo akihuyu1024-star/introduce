@@ -3,119 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>웹툰 생성기</title>
+  <title>상황 기반 웹툰 생성기</title>
   <style>
-    :root {
-      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-      color: #111827;
-      background: #f3f4f6;
-    }
-
-    * { box-sizing: border-box; }
-    body { margin: 0; }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 2rem 1rem 4rem;
-    }
-    .lead { color: #4b5563; }
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 1rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,.08);
-      margin-top: 1rem;
-    }
-    label {
-      display: block;
-      margin: .8rem 0 .4rem;
-      font-weight: 600;
-    }
-    textarea, select, input, button {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid #d1d5db;
-      padding: .7rem .8rem;
-      font-size: 1rem;
-    }
-    textarea { min-height: 130px; resize: vertical; }
-    button {
-      border: none;
-      background: #2563eb;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    #generate { margin-top: 1rem; }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .8rem;
-    }
-    .hidden { display: none; }
-    .cut {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: .75rem;
-      margin-top: .7rem;
-      background: #fff;
-    }
-    .jp {
-      color: #1d4ed8;
-      font-weight: 700;
-    }
-    pre {
-      white-space: pre-wrap;
-      background: #f9fafb;
-      padding: .75rem;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      margin: .5rem 0 0;
-    }
-
-    .section-title {
-      margin-top: 1.4rem;
-      margin-bottom: .4rem;
-    }
-    .prompt-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .6rem;
-      margin-top: .7rem;
-    }
-    .prompt-title {
-      font-weight: 700;
-      margin: 0;
-    }
-    .copy-btn {
-      width: auto;
-      padding: .45rem .7rem;
-      border-radius: 8px;
-      background: #111827;
-      font-size: .9rem;
-    }
-    .copy-all-wrap {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: .2rem;
-      margin-bottom: .5rem;
-    }
-    .muted {
-      color: #6b7280;
-      font-size: .92rem;
-      margin-top: .3rem;
-    }
+    :root { font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif; color:#111827; background:#f3f4f6; }
+    * { box-sizing:border-box; }
+    body { margin:0; }
+    .container { max-width:900px; margin:0 auto; padding:2rem 1rem 4rem; }
+    .lead { color:#4b5563; }
+    .card { background:#fff; border-radius:16px; padding:1rem; box-shadow:0 8px 24px rgba(0,0,0,.08); margin-top:1rem; }
+    label { display:block; margin:.8rem 0 .4rem; font-weight:600; }
+    textarea, select, input, button { width:100%; border-radius:10px; border:1px solid #d1d5db; padding:.7rem .8rem; font-size:1rem; }
+    textarea { min-height:130px; resize:vertical; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+    .actions { display:flex; gap:.6rem; margin-top:1rem; }
+    .actions button { border:none; color:#fff; font-weight:700; cursor:pointer; }
+    #generate { background:#2563eb; }
+    #copyAll { background:#059669; display:none; }
+    .hidden { display:none; }
+    .result-grid { display:grid; gap:.75rem; margin-top:.7rem; }
+    .cut-card { border:1px solid #e5e7eb; border-radius:12px; padding:.9rem; background:#fcfcfd; }
+    .cut-head { display:flex; justify-content:space-between; align-items:center; gap:.6rem; }
+    .copy-btn { width:auto; background:#374151; color:#fff; border:none; padding:.45rem .7rem; border-radius:8px; cursor:pointer; font-size:.9rem; }
+    .jp { color:#1d4ed8; font-weight:700; }
+    .muted { color:#6b7280; font-size:.9rem; }
   </style>
 </head>
 <body>
   <main class="container">
     <h1>상황 기반 웹툰 생성기</h1>
-    <p class="lead">상황 설명 또는 참고자료를 기반으로 여러 컷 만화 구성과 일본어 대사를 생성합니다.</p>
+    <p class="lead">상황 설명 또는 참고자료를 바탕으로 컷별 웹툰 스토리와 자연스러운 일본어 대사를 생성합니다.</p>
 
     <section class="card">
       <label for="scenario">상황 설명</label>
-      <textarea id="scenario" placeholder="예: 시험 전날 밤, 학생이 불안해하지만 친구의 응원으로 용기를 얻는 이야기"></textarea>
+      <textarea id="scenario" placeholder="예: 학생 3명이 카페에서 만나 인사하고, 친구를 소개하고, 취미와 학년을 묻는 장면"></textarea>
 
       <label for="ref">참고자료 업로드 (선택)</label>
       <input id="ref" type="file" accept="image/*,.pdf,.txt" />
@@ -132,161 +52,184 @@
         <div>
           <label for="tone">톤</label>
           <select id="tone">
+            <option>일상</option>
             <option>코믹</option>
             <option>감동</option>
-            <option>일상</option>
             <option>긴장감</option>
           </select>
         </div>
       </div>
 
-      <button id="generate">웹툰 콘티 생성</button>
+      <div class="actions">
+        <button id="generate">웹툰 생성</button>
+        <button id="copyAll">전체 복사</button>
+      </div>
+      <p class="muted">※ 상황 설명 또는 참고자료 중 하나만 있어도 생성됩니다.</p>
     </section>
 
-    <section id="output" class="card hidden"></section>
+    <section id="output" class="card hidden">
+      <h2>생성 결과</h2>
+      <div id="resultGrid" class="result-grid"></div>
+    </section>
   </main>
 
   <script>
     const byId = (id) => document.getElementById(id);
 
-    const promptTemplate = ({ scenario, cuts, tone, hasRef }) => `
-당신은 웹툰 작가입니다.
-다음 조건으로 ${cuts}컷 웹툰 콘티를 만드세요.
-- 상황: ${scenario || "없음(참고자료 기반 추론)"}
-- 톤: ${tone}
-- 참고자료 업로드 여부: ${hasRef ? "있음" : "없음"}
-- 각 컷마다 장면 설명, 감정, 카메라 구도, 일본어 대사(원문)와 한국어 해석을 제공
-- 출력은 JSON 배열 형식
-`;
-
-    const jpLines = {
-      코믹: ["えっ、今それ言う!?", "まあ、なんとかなるって！", "ドキドキするけど、行こう！"],
-      감동: ["君ならきっとできる。", "一人じゃないよ。", "ありがとう、勇気が出た。"],
-      일상: ["今日もいつも通りだね。", "ちょっと休憩しよう。", "じゃあ、またあとで。"],
-      긴장감: ["時間がない、急ごう。", "このままじゃ間に合わない。", "最後まで諦めない！"]
+    const roleTemplates = {
+      3: ["도입", "핵심 대화", "마무리"],
+      4: ["도입", "인물 소개", "질문/응답", "마무리"],
+      6: ["도입", "인물 소개", "질문", "응답", "반응", "마무리"]
     };
 
-    const backgrounds = {
-      코믹: ["학교 복도", "교실", "카페 거리", "운동장", "지하철역", "옥상"],
-      감동: ["노을 지는 교실", "도서관 창가", "비 오는 골목", "공원 벤치", "다리 위", "집 앞 길"],
-      일상: ["교실", "학교 앞 편의점", "주택가 골목", "버스 정류장", "도서관", "동네 공원"],
-      긴장감: ["어두운 복도", "시험장 앞", "비상계단", "텅 빈 운동장", "지하철 플랫폼", "옥상 난간 근처"]
+    const toneWords = {
+      일상: ["편안한", "부드러운", "친근한"],
+      코믹: ["유쾌한", "가벼운", "장난스러운"],
+      감동: ["따뜻한", "진심 어린", "다정한"],
+      긴장감: ["조심스러운", "집중된", "긴박한"]
     };
 
-    const lighting = {
-      코믹: "밝고 선명한 하이키 조명, 채도 높은 색감",
-      감동: "부드러운 역광과 따뜻한 톤, 파스텔 색감",
-      일상: "자연광 중심의 뉴트럴 톤, 담백한 색감",
-      긴장감: "강한 명암 대비의 로우키 조명, 차가운 색감"
-    };
+    function extractContext(text, hasRef) {
+      const clean = (text || "").trim();
+      const peopleMatch = clean.match(/(\d+)명/);
+      const people = peopleMatch ? Number(peopleMatch[1]) : (/(학생|친구|선생|팀원)/.test(clean) ? 2 : 1);
 
-    function generateStoryboard({ scenario, cuts, tone, hasRef, refName }) {
-      const lines = jpLines[tone] || jpLines["일상"];
-      const base = scenario || (hasRef ? `참고자료(${refName}) 기반 스토리` : "상황 없음");
-      const emotionMap = ["불안", "결심", "행동", "해소", "성장", "여운"];
-      const cameraMap = ["클로즈업", "미디엄샷", "와이드샷", "로우앵글", "오버숄더", "탑뷰"];
-      const bgList = backgrounds[tone] || backgrounds["일상"];
+      const placeHints = ["학교", "교실", "복도", "카페", "도서관", "공원", "집", "회사", "강의실"];
+      const place = placeHints.find((p) => clean.includes(p)) || (hasRef ? "참고자료 속 배경" : "약속 장소");
 
-      return Array.from({ length: Number(cuts) }, (_, i) => ({
+      const purpose = /소개|인사|취미|학년|질문|면접|발표|응원|상담/.exec(clean)?.[0] || "대화";
+
+      return {
+        raw: clean || "참고자료를 바탕으로 인물들이 만나 자연스럽게 대화한다.",
+        people,
+        place,
+        purpose,
+        hasRef
+      };
+    }
+
+    function buildScene(role, i, context, tone) {
+      const mood = toneWords[tone][i % toneWords[tone].length];
+      const personText = context.people > 1 ? `인물 ${context.people}명` : "한 인물";
+
+      const map = {
+        "도입": `${context.place}에서 ${personText}이(가) 만나 ${mood} 분위기로 이야기를 시작한다.`,
+        "인물 소개": `한 인물이 다른 인물을 소개하며 관계와 목적(${context.purpose})을 분명히 한다.`,
+        "핵심 대화": `${context.raw}의 핵심 주제를 짚으며 서로의 생각을 나눈다.`,
+        "질문": `${context.purpose}와 관련된 구체적인 질문이 나오며 대화의 방향이 정해진다.`,
+        "응답": `질문을 받은 인물이 자신의 상황을 솔직하고 구체적으로 답한다.`,
+        "질문/응답": `한 인물이 질문하고 다른 인물이 바로 응답하며 서로를 이해한다.`,
+        "반응": `답을 들은 인물들이 공감하거나 놀라워하며 분위기가 살아난다.`,
+        "마무리": `대화를 정리하고 다음 행동을 약속하며 장면을 기분 좋게 마친다.`
+      };
+
+      return map[role] || `${context.raw}를 바탕으로 장면이 전개된다.`;
+    }
+
+    function roleLine(role, idx) {
+      const variants = {
+        "도입": ["こんにちは、待たせてごめんね。", "やっと会えたね、今日はよろしく。", "来てくれてありがとう、始めようか。"],
+        "인물 소개": ["こちらは同じクラスのミナです。", "この人は私の友だちで、とても頼れるんだ。", "紹介するね、彼はプロジェクトのメンバーだよ。"],
+        "핵심 대화": ["まずは今日の目的を確認しよう。", "大事なポイントから話していこうか。", "じゃあ本題に入ってもいい？"],
+        "질문": ["ところで、あなたの趣味は何ですか？", "今、いちばん頑張っていることは何？", "何年生ですか、よかったら教えてください。"],
+        "응답": ["私は写真を撮るのが好きです。", "今は英語の勉強に力を入れています。", "二年生です、部活と両立しています。"],
+        "질문/응답": ["趣味は何？― 私はギターを弾くのが好き。", "何年生？― 三年生で受験の準備中だよ。", "どんなことに興味がある？― デザインに興味があります。"],
+        "반응": ["それ、すごくいいですね！", "わあ、もっと話を聞きたくなった。", "なるほど、すごく参考になるよ。"],
+        "마무리": ["今日は話せて本当によかった。", "次は一緒に練習してみよう。", "また会って続きの話をしようね。"]
+      };
+      return variants[role]?.[idx % variants[role].length] || "いい話ができたね。";
+    }
+
+    function toKoreanHint(jp) {
+      return `한국어 뜻: ${jp.replace(/。/g, "")}`;
+    }
+
+    function ensureUniqueLines(cuts) {
+      const seen = new Set();
+      return cuts.map((cut, idx) => {
+        let line = cut.japanese;
+        let guard = 0;
+        while (seen.has(line) && guard < 5) {
+          line = `${line.replace(/[。！!]$/, "")} (${idx + 1})。`;
+          guard += 1;
+        }
+        seen.add(line);
+        return { ...cut, japanese: line, korean: toKoreanHint(line) };
+      });
+    }
+
+    function generateStory({ scenario, cuts, tone, hasRef }) {
+      const n = Number(cuts);
+      const context = extractContext(scenario, hasRef);
+      const roles = roleTemplates[n] || roleTemplates[4];
+
+      const draft = roles.map((role, i) => ({
         cut: i + 1,
-        scene: `${i + 1}컷: ${base.slice(0, 60)}... 전개`,
-        emotion: emotionMap[i] || "여운",
-        background: bgList[i % bgList.length],
-        camera: cameraMap[i] || "미디엄샷",
-        style: `${tone} 분위기의 한국형 세로 스크롤 웹툰, 깔끔한 라인아트`,
-        lighting: lighting[tone] || lighting["일상"],
-        japanese: lines[i % lines.length],
-        korean: "(일본어 대사에 맞는 한국어 해석을 여기에 표시)"
+        role,
+        scene: buildScene(role, i, context, tone),
+        japanese: roleLine(role, i)
       }));
+
+      return ensureUniqueLines(draft);
     }
 
-    function buildImagePrompt(item) {
-      return [
-        `컷 ${item.cut} 이미지 생성 프롬프트`,
-        `- 장면 설명: ${item.scene}`,
-        `- 인물 감정: ${item.emotion}`,
-        `- 배경: ${item.background}`,
-        `- 카메라 구도: ${item.camera}`,
-        `- 조명/색감: ${item.lighting}`,
-        `- 웹툰 스타일: ${item.style}`,
-        `- 말풍선 대사: "${item.japanese}"`
-      ].join("\n");
+    function renderResults(cuts) {
+      const grid = byId("resultGrid");
+      grid.innerHTML = "";
+
+      cuts.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "cut-card";
+        card.innerHTML = `
+          <div class="cut-head">
+            <h3>컷 ${item.cut} (${item.role})</h3>
+            <button class="copy-btn" data-copy="${encodeURIComponent(item.japanese)}">복사</button>
+          </div>
+          <p><strong>- 장면 설명:</strong> ${item.scene}</p>
+          <p><strong>- 일본어 대사:</strong> <span class="jp">${item.japanese}</span></p>
+          <p><strong>- 한국어 뜻:</strong> ${item.korean.replace("한국어 뜻: ", "")}</p>
+        `;
+        grid.appendChild(card);
+      });
+
+      grid.querySelectorAll(".copy-btn").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const text = decodeURIComponent(btn.dataset.copy);
+          await navigator.clipboard.writeText(text);
+          btn.textContent = "복사됨";
+          setTimeout(() => (btn.textContent = "복사"), 900);
+        });
+      });
     }
 
-    async function copyText(text, btn) {
-      try {
-        await navigator.clipboard.writeText(text);
-        const original = btn.textContent;
-        btn.textContent = "복사됨";
-        setTimeout(() => (btn.textContent = original), 900);
-      } catch {
-        alert("복사에 실패했습니다. 브라우저 권한을 확인해 주세요.");
-      }
+    function allText(cuts) {
+      return cuts.map((item) => `컷 ${item.cut}\n- 장면 설명: ${item.scene}\n- 일본어 대사: ${item.japanese}\n- 한국어 뜻: ${item.korean.replace("한국어 뜻: ", "")}`).join("\n\n");
     }
 
     byId("generate").addEventListener("click", () => {
       const scenario = byId("scenario").value.trim();
-      const fileInput = byId("ref");
-      const hasRef = fileInput.files.length > 0;
-      const refName = hasRef ? fileInput.files[0].name : "";
-      const cuts = byId("cuts").value;
-      const tone = byId("tone").value;
+      const hasRef = byId("ref").files.length > 0;
 
-      // 상황 설명 또는 참고자료 중 하나만 있어도 생성 가능
       if (!scenario && !hasRef) {
         alert("상황 설명을 입력하거나 참고자료를 업로드해 주세요.");
         return;
       }
 
-      const systemPrompt = promptTemplate({ scenario, cuts, tone, hasRef });
-      const storyboard = generateStoryboard({ scenario, cuts, tone, hasRef, refName });
-      const imagePrompts = storyboard.map(buildImagePrompt);
+      const cuts = byId("cuts").value;
+      const tone = byId("tone").value;
+      const story = generateStory({ scenario, cuts, tone, hasRef });
 
-      const out = byId("output");
-      out.classList.remove("hidden");
-      out.innerHTML = `
-        <h2>생성 결과</h2>
-        <p><strong>LLM 프롬프트 샘플:</strong></p>
-        <pre>${systemPrompt.replace(/</g, "&lt;")}</pre>
+      renderResults(story);
+      const output = byId("output");
+      output.classList.remove("hidden");
 
-        ${storyboard.map(item => `
-          <article class="cut">
-            <h3>${item.cut}컷</h3>
-            <p><strong>장면:</strong> ${item.scene}</p>
-            <p><strong>감정:</strong> ${item.emotion}</p>
-            <p><strong>카메라:</strong> ${item.camera}</p>
-            <p class="jp">${item.japanese}</p>
-            <p>${item.korean}</p>
-          </article>
-        `).join("")}
-
-        <h3 class="section-title">컷별 이미지 프롬프트</h3>
-        <p class="muted">이미지 생성 모델(예: text-to-image)에 그대로 넣어 사용할 수 있는 프롬프트입니다.</p>
-        <div class="copy-all-wrap">
-          <button class="copy-btn" id="copyAllPrompts">전체 프롬프트 복사</button>
-        </div>
-
-        ${imagePrompts.map((prompt, idx) => `
-          <article class="cut">
-            <div class="prompt-header">
-              <p class="prompt-title">컷 ${idx + 1}</p>
-              <button class="copy-btn copy-one" data-idx="${idx}">복사</button>
-            </div>
-            <pre>${prompt.replace(/</g, "&lt;")}</pre>
-          </article>
-        `).join("")}
-      `;
-
-      const allText = imagePrompts.join("\n\n--------------------\n\n");
-      const copyAllBtn = byId("copyAllPrompts");
-      copyAllBtn.addEventListener("click", () => copyText(allText, copyAllBtn));
-
-      out.querySelectorAll(".copy-one").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const idx = Number(btn.dataset.idx);
-          copyText(imagePrompts[idx], btn);
-        });
-      });
+      const copyAll = byId("copyAll");
+      copyAll.style.display = "block";
+      copyAll.onclick = async () => {
+        await navigator.clipboard.writeText(allText(story));
+        copyAll.textContent = "전체 복사됨";
+        setTimeout(() => (copyAll.textContent = "전체 복사"), 900);
+      };
     });
   </script>
 </body>
